@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify Album Comparison</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar {
+            background-color: #1DB954 !important; /* Verde Spotify */
+        }
+        .navbar-brand {
+            color: white !important;
+            font-weight: bold;
+        }
+        .form-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: 2rem;
+        }
+        .list-group-item {
+            cursor: pointer;
+        }
+        .list-group-item:hover {
+            background-color: #f1f1f1;
+        }
+        .list-group-item img {
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Spotify Album Comparison</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="form-container">
+                    <h2 class="text-center mb-4">Compare Albums</h2>
+                    <form id="artistForm">
+                        <div class="form-group mb-3">
+                            <label for="artistSearch" class="form-label">Search Artist</label>
+                            <input type="text" class="form-control" id="artistSearch" placeholder="Enter artist name">
+                            <ul id="artistResults" class="list-group mt-2"></ul>
+                        </div>
+                    </form>
+                    <form id="albumForm" action="/compare" method="POST">
+                        <div class="form-group mb-3">
+                            <label for="album1" class="form-label">Album 1</label>
+                            <select class="form-control" id="album1" name="album1" required></select>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="album2" class="form-label">Album 2</label>
+                            <select class="form-control" id="album2" name="album2" required></select>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Compare Albums</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#artistSearch').on('input', function() {
+                const query = $(this).val();
+                if (query.length > 2) {
+                    $.get('/search_artist', { query: query }, function(data) {
+                        const results = $('#artistResults');
+                        results.empty();
+                        data.artists.forEach(artist => {
+                            const imageUrl = artist.images.length > 0 ? artist.images[0].url : 'https://via.placeholder.com/50';
+                            results.append(`
+                                <li class="list-group-item d-flex align-items-center" data-id="${artist.id}">
+                                    <img src="${imageUrl}" alt="${artist.name}" class="rounded-circle me-3" style="width: 50px; height: 50px;">
+                                    <span>${artist.name}</span>
+                                </li>
+                            `);
+                        });
+                    });
+                }
+            });
+
+            $('#artistResults').on('click', 'li', function() {
+                const artistId = $(this).data('id');
+                $('#artistSearch').val($(this).text());
+                $('#artistResults').empty();
+                $.get('/get_albums', { artist_id: artistId }, function(data) {
+                    const album1 = $('#album1');
+                    const album2 = $('#album2');
+                    album1.empty();
+                    album2.empty();
+                    data.albums.forEach(album => {
+                        album1.append(`<option value="${album.id}">${album.name}</option>`);
+                        album2.append(`<option value="${album.id}">${album.name}</option>`);
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
