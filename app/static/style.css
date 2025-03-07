@@ -45,3 +45,12 @@ li {
     margin-bottom: 5px;
     border: 1px solid #ddd;
 }
+
+.audio-player {
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.track-list li {
+    margin-bottom: 1rem;
+}
