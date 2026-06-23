@@ -79,6 +79,7 @@ Aplicação web para comparar álbuns de um artista, mostrando as músicas comun
    ```env
    SPOTIFY_CLIENT_ID=seu_client_id
    SPOTIFY_CLIENT_SECRET=seu_client_secret
+   SPOTIFY_MARKET=BR
    FLASK_DEBUG=false
    ```
 
@@ -92,6 +93,8 @@ Aplicação web para comparar álbuns de um artista, mostrando as músicas comun
 A aplicação estará disponível em `http://127.0.0.1:5000`.
 
 Para desenvolvimento local, você pode definir `FLASK_DEBUG=true`. Não habilite o modo debug em produção.
+
+`SPOTIFY_MARKET` deve usar um código de país ISO de duas letras, como `BR`, `US` ou `PT`.
 
 ## Como usar
 
