@@ -1,18 +1,17 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request
 import requests
 import os
 from dotenv import load_dotenv
-from math import ceil
 
 load_dotenv()
 
 app = Flask(__name__)
 
-# Spotify API credentials
+# Credenciais da API do Spotify
 CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID')
 CLIENT_SECRET = os.getenv('SPOTIFY_CLIENT_SECRET')
 
-# Get Spotify API token
+# Obtém um token da API do Spotify
 def get_spotify_token():
     auth_url = 'https://accounts.spotify.com/api/token'
     auth_response = requests.post(auth_url, {
@@ -23,21 +22,21 @@ def get_spotify_token():
     auth_response_data = auth_response.json()
     return auth_response_data['access_token']
 
-# Search for artist
+# Pesquisa um artista
 def search_artist(query, token):
     url = f'https://api.spotify.com/v1/search?q={query}&type=artist'
     headers = {'Authorization': f'Bearer {token}'}
     response = requests.get(url, headers=headers)
     return response.json()
 
-# Get artist albums
+# Obtém os álbuns de um artista
 def get_artist_albums(artist_id, token):
     url = f'https://api.spotify.com/v1/artists/{artist_id}/albums'
     headers = {'Authorization': f'Bearer {token}'}
     response = requests.get(url, headers=headers)
     return response.json()
 
-# Get album tracks
+# Obtém as faixas de um álbum
 def get_album_tracks(album_id, token):
     url = f'https://api.spotify.com/v1/albums/{album_id}/tracks'
     headers = {'Authorization': f'Bearer {token}'}
@@ -119,4 +118,5 @@ def compare():
                           album2_details=album2_details)
     
 if __name__ == '__main__':
-    app.run(debug=True)
+    debug_mode = os.getenv('FLASK_DEBUG', 'false').lower() in ('1', 'true', 'yes')
+    app.run(debug=debug_mode)

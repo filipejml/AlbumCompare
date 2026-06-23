@@ -1,0 +1,17 @@
+# Credenciais e configurações locais
+.env
+app/.env
+
+# Ambientes virtuais
+venv/
+.venv/
+
+# Arquivos gerados pelo Python
+__pycache__/
+*.py[cod]
+
+# Ferramentas e sistema operacional
+.pytest_cache/
+.ruff_cache/
+.DS_Store
+Thumbs.db
