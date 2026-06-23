@@ -2,113 +2,354 @@
 
 ![Spotify Logo](https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg)
 
-Aplicação web para comparar álbuns de um artista, mostrando as músicas comuns e exclusivas de cada álbum. Os dados são obtidos por meio da API do Spotify.
+Aplicação web em Flask para pesquisar artistas no Spotify e comparar dois de seus álbuns. O resultado apresenta informações dos álbuns e separa as faixas em comuns e exclusivas.
 
 ## Funcionalidades
 
-- Pesquisar artistas diretamente na API do Spotify.
-- Listar os álbuns de um artista.
-- Comparar dois álbuns.
-- Mostrar músicas comuns e exclusivas.
-- Exibir capas, datas de lançamento, quantidade de faixas e popularidade.
-- Reproduzir prévias disponibilizadas pelo Spotify.
-- Abrir os álbuns diretamente no Spotify.
+- Pesquisa de artistas pela API Web do Spotify.
+- Listagem paginada de álbuns, singles e compilações.
+- Comparação entre dois álbuns diferentes.
+- Exibição de faixas comuns e exclusivas.
+- Exibição de capa, data de lançamento, número de faixas e popularidade.
+- Reprodução da prévia da faixa quando disponibilizada pelo Spotify.
+- Link direto para cada álbum no Spotify.
+- Tratamento de credenciais ausentes, falhas de rede e erros da API.
 
 ## Tecnologias
 
-- Python
+- Python 3
 - Flask
 - Requests
 - python-dotenv
 - API Web do Spotify
 - HTML5, CSS3, Bootstrap e jQuery
 
+## Estrutura do projeto
+
+```text
+AlbumCompare/
+├── app/
+│   ├── app.py                 # Aplicação Flask e rotas
+│   ├── spotify_service.py     # Comunicação com a API do Spotify
+│   ├── requirements.txt       # Dependências Python
+│   ├── .env.example           # Modelo das variáveis de ambiente
+│   ├── static/
+│   │   └── style.css
+│   └── templates/
+│       ├── index.html
+│       ├── results.html
+│       └── error.html
+├── tests/
+│   ├── test_app.py
+│   └── test_spotify_service.py
+├── .gitignore
+└── README.md
+```
+
 ## Pré-requisitos
 
-- Python 3 instalado.
+Antes de começar, instale ou providencie:
+
+- Python 3.10 ou mais recente.
+- Git, caso queira clonar o repositório.
 - Uma conta no [Spotify for Developers](https://developer.spotify.com/).
-- Um aplicativo criado no Spotify Developer Dashboard para obter o Client ID e o Client Secret.
+- Um aplicativo no Spotify Developer Dashboard para obter o **Client ID** e o **Client Secret**.
 
-## Instalação
+Confira a instalação do Python:
 
-1. Clone o repositório:
+```powershell
+python --version
+```
 
-   ```bash
-   git clone https://github.com/filipejml/AlbumCompare.git
-   cd AlbumCompare
-   ```
+No Linux ou macOS, o comando pode ser:
 
-2. Crie e ative um ambiente virtual.
+```bash
+python3 --version
+```
 
-   No Windows:
+## Diretório usado nos comandos
 
-   ```powershell
-   python -m venv venv
-   .\venv\Scripts\Activate.ps1
-   ```
+Exceto quando uma seção disser o contrário, todos os comandos deste README devem ser executados na raiz do projeto:
 
-   No Linux ou macOS:
+```text
+AlbumCompare/
+```
 
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
+No ambiente apresentado neste repositório, a raiz corresponde a:
 
-3. Instale as dependências:
+```text
+C:\xampp\htdocs\AlbumCompare
+```
 
-   ```bash
-   pip install -r app/requirements.txt
-   ```
+No PowerShell, você pode entrar nela com:
 
-4. Crie a configuração local a partir do exemplo.
+```powershell
+cd C:\xampp\htdocs\AlbumCompare
+```
 
-   No Windows:
+Não é necessário entrar na pasta `app` para instalar dependências, configurar o `.env`, executar a aplicação ou rodar os testes.
 
-   ```powershell
-   Copy-Item app/.env.example app/.env
-   ```
+## Instalação no Windows com PowerShell
 
-   No Linux ou macOS:
+### 1. Clonar e acessar o projeto
 
-   ```bash
-   cp app/.env.example app/.env
-   ```
+Se ainda não possui o projeto:
 
-5. Preencha `app/.env` com suas credenciais:
+```powershell
+git clone https://github.com/filipejml/AlbumCompare.git
+cd AlbumCompare
+```
 
-   ```env
-   SPOTIFY_CLIENT_ID=seu_client_id
-   SPOTIFY_CLIENT_SECRET=seu_client_secret
-   SPOTIFY_MARKET=BR
-   FLASK_DEBUG=false
-   ```
+Se o projeto já está em `C:\xampp\htdocs\AlbumCompare`:
 
-6. Execute a aplicação:
+```powershell
+cd C:\xampp\htdocs\AlbumCompare
+```
 
-   ```powershell
-   cd app
-   python app.py
-   ```
+### 2. Criar o ambiente virtual
 
-A aplicação estará disponível em `http://127.0.0.1:5000`.
+Execute na raiz `AlbumCompare`:
 
-Para desenvolvimento local, você pode definir `FLASK_DEBUG=true`. Não habilite o modo debug em produção.
+```powershell
+python -m venv venv
+```
 
-`SPOTIFY_MARKET` deve usar um código de país ISO de duas letras, como `BR`, `US` ou `PT`.
+### 3. Ativar o ambiente virtual
 
-## Como usar
+```powershell
+.\venv\Scripts\Activate.ps1
+```
 
-1. Digite o nome de um artista.
-2. Selecione o artista na lista de resultados.
-3. Escolha dois álbuns.
-4. Clique em **Compare Albums**.
-5. Confira as faixas comuns e exclusivas de cada álbum.
+Quando estiver ativo, o terminal normalmente exibirá `(venv)` antes do caminho.
+
+Se o PowerShell bloquear a ativação de scripts, execute isto somente na sessão atual:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\venv\Scripts\Activate.ps1
+```
+
+### 4. Instalar as dependências
+
+Ainda na raiz:
+
+```powershell
+python -m pip install --upgrade pip
+python -m pip install -r app\requirements.txt
+```
+
+### 5. Criar o arquivo de configuração
+
+```powershell
+Copy-Item app\.env.example app\.env
+```
+
+Abra `app\.env` e substitua os valores de exemplo pelas credenciais do Spotify:
+
+```env
+SPOTIFY_CLIENT_ID=seu_client_id
+SPOTIFY_CLIENT_SECRET=seu_client_secret
+SPOTIFY_MARKET=BR
+FLASK_DEBUG=false
+```
+
+### 6. Executar a aplicação
+
+Na raiz `AlbumCompare`, com o ambiente virtual ativo:
+
+```powershell
+python app\app.py
+```
+
+Abra no navegador:
+
+```text
+http://127.0.0.1:5000
+```
+
+Para encerrar o servidor, pressione `Ctrl+C` no terminal.
+
+Para sair do ambiente virtual:
+
+```powershell
+deactivate
+```
+
+## Instalação no Linux ou macOS
+
+Todos os comandos abaixo também partem da raiz `AlbumCompare`.
+
+### 1. Clonar e acessar o projeto
+
+```bash
+git clone https://github.com/filipejml/AlbumCompare.git
+cd AlbumCompare
+```
+
+### 2. Criar e ativar o ambiente virtual
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### 3. Instalar as dependências
+
+```bash
+python -m pip install --upgrade pip
+python -m pip install -r app/requirements.txt
+```
+
+### 4. Criar e preencher o `.env`
+
+```bash
+cp app/.env.example app/.env
+```
+
+Edite `app/.env`:
+
+```env
+SPOTIFY_CLIENT_ID=seu_client_id
+SPOTIFY_CLIENT_SECRET=seu_client_secret
+SPOTIFY_MARKET=BR
+FLASK_DEBUG=false
+```
+
+### 5. Executar a aplicação
+
+```bash
+python app/app.py
+```
+
+Depois, acesse `http://127.0.0.1:5000`.
+
+## Variáveis de ambiente
+
+O arquivo usado pela aplicação é `app/.env`.
+
+| Variável | Obrigatória | Exemplo | Finalidade |
+|---|---:|---|---|
+| `SPOTIFY_CLIENT_ID` | Sim | `abc123` | Identifica o aplicativo criado no Spotify. |
+| `SPOTIFY_CLIENT_SECRET` | Sim | `xyz456` | Autentica o aplicativo no Spotify. |
+| `SPOTIFY_MARKET` | Não | `BR` | Define o catálogo regional. O padrão é `BR`. |
+| `FLASK_DEBUG` | Não | `false` | Habilita o modo de desenvolvimento quando definido como `true`. |
+| `LOG_LEVEL` | Não | `INFO` | Controla o nível dos logs, como `DEBUG`, `INFO` ou `WARNING`. |
+
+`SPOTIFY_MARKET` deve ser um código ISO de país com duas letras, como `BR`, `US` ou `PT`.
+
+Use `FLASK_DEBUG=true` somente durante o desenvolvimento local. Não habilite o modo debug em produção.
+
+## Como usar a aplicação
+
+1. Inicie o servidor e abra `http://127.0.0.1:5000`.
+2. Digite ao menos três caracteres do nome de um artista.
+3. Aguarde os resultados e clique no artista desejado.
+4. A aplicação carregará os álbuns disponíveis para o mercado configurado.
+5. Escolha um álbum no campo **Album 1**.
+6. Escolha um álbum diferente no campo **Album 2**.
+7. Clique em **Compare Albums**.
+8. Na página de resultados, consulte:
+   - dados e capas dos dois álbuns;
+   - músicas presentes nos dois álbuns;
+   - músicas exclusivas do primeiro álbum;
+   - músicas exclusivas do segundo álbum;
+   - prévias de áudio disponíveis;
+   - links para abrir os álbuns no Spotify.
+9. Use **Voltar ao Início** para realizar outra comparação.
+
+O Spotify nem sempre fornece uma prévia de áudio. Nesses casos, a aplicação informa que o trecho não está disponível.
+
+## Executar os testes
+
+Com o ambiente virtual ativo e estando na raiz `AlbumCompare`:
+
+No Windows:
+
+```powershell
+python -m unittest discover -s tests -v
+```
+
+No Linux ou macOS:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+Os testes usam simulações da API e não precisam consumir suas credenciais reais do Spotify.
+
+## Execuções posteriores
+
+Depois da primeira instalação, não é necessário recriar o ambiente virtual ou reinstalar as dependências a cada execução.
+
+No Windows:
+
+```powershell
+cd C:\xampp\htdocs\AlbumCompare
+.\venv\Scripts\Activate.ps1
+python app\app.py
+```
+
+No Linux ou macOS:
+
+```bash
+cd /caminho/para/AlbumCompare
+source venv/bin/activate
+python app/app.py
+```
+
+## Solução de problemas
+
+### `No module named flask`, `requests` ou `dotenv`
+
+O ambiente virtual provavelmente não está ativo ou as dependências não foram instaladas. Na raiz do projeto:
+
+```powershell
+.\venv\Scripts\Activate.ps1
+python -m pip install -r app\requirements.txt
+```
+
+### `As credenciais do Spotify não estão configuradas`
+
+Confira se:
+
+- o arquivo está em `app/.env`, e não na raiz;
+- `SPOTIFY_CLIENT_ID` e `SPOTIFY_CLIENT_SECRET` foram preenchidos;
+- não há aspas ou espaços extras nos valores;
+- a aplicação foi reiniciada após alterar o arquivo.
+
+### Falha de autenticação no Spotify
+
+Confirme as credenciais no Spotify Developer Dashboard. Se elas já foram publicadas em um repositório, revogue-as e gere novas.
+
+### Nenhum álbum aparece
+
+Verifique:
+
+- se o artista selecionado possui lançamentos;
+- se `SPOTIFY_MARKET` contém um país válido;
+- se os lançamentos estão disponíveis naquele mercado;
+- se o terminal exibe alguma mensagem de erro da API.
+
+### Porta 5000 já está sendo usada
+
+Encerre outro servidor Flask com `Ctrl+C` ou identifique o processo que está ocupando a porta antes de iniciar novamente.
+
+### Recriar um ambiente virtual com problema
+
+Com o servidor parado, remova manualmente a pasta `venv`, crie o ambiente novamente e reinstale as dependências:
+
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+python -m pip install -r app\requirements.txt
+```
 
 ## Segurança
 
-O arquivo `app/.env` contém credenciais locais e não deve ser enviado ao Git. Use somente `app/.env.example` como modelo.
-
-Se credenciais reais já tiverem sido publicadas no histórico do repositório, revogue-as no Spotify Developer Dashboard e gere novas credenciais.
+- Nunca envie `app/.env` para o Git.
+- O repositório deve conter somente `app/.env.example`.
+- Não compartilhe o Client Secret em capturas de tela, logs ou mensagens.
+- Se uma credencial real já foi publicada, removê-la do arquivo atual não basta: revogue-a no Spotify Developer Dashboard e gere outra.
 
 ## Licença
 
