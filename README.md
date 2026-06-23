@@ -10,6 +10,8 @@ Aplicação web em Flask para pesquisar artistas no Spotify e comparar dois de s
 - Listagem paginada de álbuns, singles e compilações.
 - Comparação entre dois álbuns diferentes.
 - Exibição de faixas comuns e exclusivas.
+- Comparação tolerante a diferenças de caixa, acentos, pontuação, espaços e créditos `feat.`.
+- Distinção entre versões de estúdio, ao vivo, acústicas, remixes e remasterizações.
 - Exibição de capa, data de lançamento, número de faixas e popularidade.
 - Reprodução da prévia da faixa quando disponibilizada pelo Spotify.
 - Link direto para cada álbum no Spotify.
@@ -31,6 +33,7 @@ AlbumCompare/
 ├── app/
 │   ├── app.py                 # Aplicação Flask e rotas
 │   ├── spotify_service.py     # Comunicação com a API do Spotify
+│   ├── track_comparison.py    # Regras de equivalência entre músicas
 │   ├── requirements.txt       # Dependências Python
 │   ├── .env.example           # Modelo das variáveis de ambiente
 │   ├── static/
@@ -41,7 +44,8 @@ AlbumCompare/
 │       └── error.html
 ├── tests/
 │   ├── test_app.py
-│   └── test_spotify_service.py
+│   ├── test_spotify_service.py
+│   └── test_track_comparison.py
 ├── .gitignore
 └── README.md
 ```
@@ -258,6 +262,22 @@ Use `FLASK_DEBUG=true` somente durante o desenvolvimento local. Não habilite o 
 9. Use **Voltar ao Início** para realizar outra comparação.
 
 O Spotify nem sempre fornece uma prévia de áudio. Nesses casos, a aplicação informa que o trecho não está disponível.
+
+### Como as músicas são comparadas
+
+A aplicação primeiro considera o identificador da faixa fornecido pelo Spotify. Quando os identificadores são diferentes ou não estão disponíveis, utiliza uma assinatura normalizada do título.
+
+Essa normalização:
+
+- ignora diferenças entre maiúsculas e minúsculas;
+- remove diferenças de acentuação;
+- uniformiza pontuação e espaços;
+- ignora créditos como `feat.`, `featuring` e `ft.` no título;
+- reconhece formas equivalentes de indicar uma remasterização, como `2009 Remaster` e `Remastered 2009`;
+- preserva qualificadores relevantes para não considerar automaticamente uma versão ao vivo, acústica, remix ou demo como igual à versão de estúdio;
+- usa artista principal e duração, quando disponíveis, para reduzir falsos resultados entre músicas diferentes com o mesmo nome.
+
+Faixas duplicadas são comparadas individualmente. Por exemplo, duas ocorrências de uma música em um álbum e apenas uma no outro resultam em uma ocorrência comum e uma exclusiva.
 
 ## Executar os testes
 

@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template, request
 
 from spotify_service import SpotifyAPIError, SpotifyClient, SpotifyConfigurationError
+from track_comparison import compare_track_lists
 
 
 load_dotenv()
@@ -39,6 +40,7 @@ def valid_spotify_id(value):
 
 def track_summary(track):
     return {
+        "id": track.get("id"),
         "name": track.get("name", "Faixa sem nome"),
         "preview_url": track.get("preview_url"),
     }
@@ -128,21 +130,14 @@ def compare():
         logger.warning("Falha ao comparar álbuns: %s", error)
         return render_template("error.html", message=error.public_message), error.status_code
 
-    album1_tracks_info = [track_summary(track) for track in album1_tracks]
-    album2_tracks_info = [track_summary(track) for track in album2_tracks]
+    common_tracks, unique_to_album1, unique_to_album2 = compare_track_lists(
+        album1_tracks,
+        album2_tracks,
+    )
 
-    album1_track_names = {track["name"] for track in album1_tracks_info}
-    album2_track_names = {track["name"] for track in album2_tracks_info}
-
-    common_tracks = [
-        track for track in album1_tracks_info if track["name"] in album2_track_names
-    ]
-    unique_to_album1 = [
-        track for track in album1_tracks_info if track["name"] not in album2_track_names
-    ]
-    unique_to_album2 = [
-        track for track in album2_tracks_info if track["name"] not in album1_track_names
-    ]
+    common_tracks = [track_summary(track) for track in common_tracks]
+    unique_to_album1 = [track_summary(track) for track in unique_to_album1]
+    unique_to_album2 = [track_summary(track) for track in unique_to_album2]
 
     album1 = album_details(album1_info)
     album2 = album_details(album2_info)
