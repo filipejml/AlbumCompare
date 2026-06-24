@@ -10,6 +10,11 @@
     <nav class="navbar navbar-dark" style="background-color: #1DB954;">
         <div class="container">
             <a class="navbar-brand fw-bold" href="/">Spotify Album Comparison</a>
+            {% if session.get("authenticated") %}
+                <form action="{{ url_for('logout') }}" method="POST" class="ms-auto">
+                    <button type="submit" class="btn btn-outline-light btn-sm">Sair</button>
+                </form>
+            {% endif %}
         </div>
     </nav>
 

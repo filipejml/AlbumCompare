@@ -15,7 +15,7 @@ VALID_ID_2 = "B" * 22
 
 class AppRouteTests(unittest.TestCase):
     def setUp(self):
-        application.app.config.update(TESTING=True)
+        application.app.config.update(TESTING=True, LOGIN_DISABLED=True)
         self.client = application.app.test_client()
 
     def test_search_rejects_short_query(self):
@@ -79,6 +79,93 @@ class AppRouteTests(unittest.TestCase):
         self.assertIn("Comum", body)
         self.assertIn("Só no primeiro", body)
         self.assertIn("Só no segundo", body)
+
+
+class LoginRouteTests(unittest.TestCase):
+    def setUp(self):
+        application.app.config.update(TESTING=True, LOGIN_DISABLED=False)
+        self.client = application.app.test_client()
+
+    def tearDown(self):
+        application.app.config.update(LOGIN_DISABLED=True)
+
+    def test_index_redirects_to_login_without_session(self):
+        response = self.client.get("/")
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/login", response.headers["Location"])
+
+    @patch.object(
+        application,
+        "authenticate_user",
+        return_value={"username": "tester", "role": "user"},
+    )
+    def test_login_accepts_configured_credentials(self, _authenticate_user):
+        response = self.client.post(
+            "/login",
+            data={"username": "tester", "password": "secret"},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], "/")
+
+    @patch.object(application, "authenticate_user", return_value=None)
+    def test_login_rejects_invalid_credentials(self, _authenticate_user):
+        response = self.client.post(
+            "/login",
+            data={"username": "tester", "password": "wrong"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("inv", response.get_data(as_text=True).lower())
+
+    @patch.object(
+        application,
+        "create_user",
+        return_value={"username": "newuser", "role": "user"},
+    )
+    def test_register_creates_user_and_redirects_to_login(self, create_user):
+        response = self.client.post(
+            "/register",
+            data={
+                "username": "newuser",
+                "password": "secret123",
+                "password_confirmation": "secret123",
+            },
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], "/login")
+        create_user.assert_called_once_with("newuser", "secret123")
+
+    def test_register_rejects_password_confirmation_mismatch(self):
+        response = self.client.post(
+            "/register",
+            data={
+                "username": "newuser",
+                "password": "secret123",
+                "password_confirmation": "different",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("confirma", response.get_data(as_text=True).lower())
+
+    @patch.object(application, "create_user", side_effect=ValueError("Usuário já existe."))
+    def test_register_shows_validation_error(self, _create_user):
+        response = self.client.post(
+            "/register",
+            data={
+                "username": "tester",
+                "password": "secret123",
+                "password_confirmation": "secret123",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("existe", response.get_data(as_text=True).lower())
 
 
 if __name__ == "__main__":

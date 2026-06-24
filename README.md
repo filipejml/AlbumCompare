@@ -154,6 +154,7 @@ Abra `app\.env` e substitua os valores de exemplo pelas credenciais do Spotify:
 SPOTIFY_CLIENT_ID=seu_client_id
 SPOTIFY_CLIENT_SECRET=seu_client_secret
 SPOTIFY_MARKET=BR
+FLASK_SECRET_KEY=troque-esta-chave-secreta
 FLASK_DEBUG=false
 ```
 
@@ -216,6 +217,7 @@ Edite `app/.env`:
 SPOTIFY_CLIENT_ID=seu_client_id
 SPOTIFY_CLIENT_SECRET=seu_client_secret
 SPOTIFY_MARKET=BR
+FLASK_SECRET_KEY=troque-esta-chave-secreta
 FLASK_DEBUG=false
 ```
 
@@ -236,30 +238,37 @@ O arquivo usado pela aplicação é `app/.env`.
 | `SPOTIFY_CLIENT_ID` | Sim | `abc123` | Identifica o aplicativo criado no Spotify. |
 | `SPOTIFY_CLIENT_SECRET` | Sim | `xyz456` | Autentica o aplicativo no Spotify. |
 | `SPOTIFY_MARKET` | Não | `BR` | Define o catálogo regional. O padrão é `BR`. |
+| `FLASK_SECRET_KEY` | Sim | `troque-esta-chave-secreta` | Chave usada para proteger a sessão de login. |
 | `FLASK_DEBUG` | Não | `false` | Habilita o modo de desenvolvimento quando definido como `true`. |
 | `LOG_LEVEL` | Não | `INFO` | Controla o nível dos logs, como `DEBUG`, `INFO` ou `WARNING`. |
 
 `SPOTIFY_MARKET` deve ser um código ISO de país com duas letras, como `BR`, `US` ou `PT`.
+
+Altere `FLASK_SECRET_KEY` antes de usar a aplicação fora do seu ambiente local.
 
 Use `FLASK_DEBUG=true` somente durante o desenvolvimento local. Não habilite o modo debug em produção.
 
 ## Como usar a aplicação
 
 1. Inicie o servidor e abra `http://127.0.0.1:5000`.
-2. Digite ao menos três caracteres do nome de um artista.
-3. Aguarde os resultados e clique no artista desejado.
-4. A aplicação carregará os álbuns disponíveis para o mercado configurado.
-5. Escolha um álbum no campo **Album 1**.
-6. Escolha um álbum diferente no campo **Album 2**.
-7. Clique em **Compare Albums**.
-8. Na página de resultados, consulte:
+2. Na tela de login, clique em **Cadastrar usuário** para criar o primeiro acesso.
+3. Faça login com o usuário cadastrado.
+4. Digite ao menos três caracteres do nome de um artista.
+5. Aguarde os resultados e clique no artista desejado.
+6. A aplicação carregará os álbuns disponíveis para o mercado configurado.
+7. Escolha um álbum no campo **Album 1**.
+8. Escolha um álbum diferente no campo **Album 2**.
+9. Clique em **Compare Albums**.
+10. Na página de resultados, consulte:
    - dados e capas dos dois álbuns;
    - músicas presentes nos dois álbuns;
    - músicas exclusivas do primeiro álbum;
    - músicas exclusivas do segundo álbum;
    - prévias de áudio disponíveis;
    - links para abrir os álbuns no Spotify.
-9. Use **Voltar ao Início** para realizar outra comparação.
+11. Use **Voltar ao Início** para realizar outra comparação ou **Sair** para encerrar a sessão.
+
+O primeiro usuário cadastrado recebe o perfil `admin`. Os cadastros seguintes recebem o perfil `user`. Todos os usuários cadastrados podem acessar o comparador.
 
 O Spotify nem sempre fornece uma prévia de áudio. Nesses casos, a aplicação informa que o trecho não está disponível.
 
@@ -367,8 +376,10 @@ python -m pip install -r app\requirements.txt
 ## Segurança
 
 - Nunca envie `app/.env` para o Git.
+- Nunca envie `app/users.json` para o Git.
 - O repositório deve conter somente `app/.env.example`.
 - Não compartilhe o Client Secret em capturas de tela, logs ou mensagens.
+- Troque `FLASK_SECRET_KEY` antes de publicar ou compartilhar a aplicação.
 - Se uma credencial real já foi publicada, removê-la do arquivo atual não basta: revogue-a no Spotify Developer Dashboard e gere outra.
 
 ## Licença

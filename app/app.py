@@ -1,10 +1,22 @@
 import logging
 import os
 import re
+from functools import wraps
+from urllib.parse import urlparse, urljoin
 
 from dotenv import load_dotenv
-from flask import Flask, jsonify, render_template, request
+from flask import (
+    Flask,
+    flash,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 
+from auth_service import authenticate_user, create_user
 from spotify_service import SpotifyAPIError, SpotifyClient, SpotifyConfigurationError
 from track_comparison import compare_track_lists
 
@@ -19,6 +31,7 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.json.ensure_ascii = False
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "altere-esta-chave-local")
 
 SPOTIFY_ID_PATTERN = re.compile(r"^[A-Za-z0-9]{22}$")
 PLACEHOLDER_COVER = "https://placehold.co/300x300?text=Sem+capa"
@@ -28,6 +41,30 @@ spotify = SpotifyClient(
     client_secret=os.getenv("SPOTIFY_CLIENT_SECRET"),
     market=os.getenv("SPOTIFY_MARKET", "BR"),
 )
+
+
+def is_authenticated():
+    return bool(session.get("authenticated"))
+
+
+def is_safe_redirect_url(target):
+    if not target:
+        return False
+    host_url = urlparse(request.host_url)
+    redirect_url = urlparse(urljoin(request.host_url, target))
+    return redirect_url.scheme in ("http", "https") and host_url.netloc == redirect_url.netloc
+
+
+def login_required(view):
+    @wraps(view)
+    def wrapped_view(*args, **kwargs):
+        if app.config.get("LOGIN_DISABLED") or is_authenticated():
+            return view(*args, **kwargs)
+        if request.accept_mimetypes.best == "application/json":
+            return json_error("Autenticação necessária.", 401)
+        return redirect(url_for("login", next=request.full_path.rstrip("?")))
+
+    return wrapped_view
 
 
 def json_error(message, status_code):
@@ -61,11 +98,74 @@ def album_details(album):
 
 
 @app.route("/")
+@login_required
 def index():
     return render_template("index.html")
 
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if is_authenticated():
+        return redirect(url_for("index"))
+
+    error_message = None
+    next_url = request.args.get("next") or request.form.get("next") or url_for("index")
+    if not is_safe_redirect_url(next_url):
+        next_url = url_for("index")
+
+    if request.method == "POST":
+        username = request.form.get("username", "")
+        password = request.form.get("password", "")
+        user = authenticate_user(username, password)
+
+        if user:
+            session.clear()
+            session["authenticated"] = True
+            session["username"] = user["username"]
+            session["role"] = user["role"]
+            return redirect(next_url)
+
+        error_message = "Usuário ou senha inválidos."
+
+    return render_template("login.html", error_message=error_message, next_url=next_url)
+
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if is_authenticated():
+        return redirect(url_for("index"))
+
+    error_message = None
+    if request.method == "POST":
+        username = request.form.get("username", "")
+        password = request.form.get("password", "")
+        password_confirmation = request.form.get("password_confirmation", "")
+
+        if password != password_confirmation:
+            error_message = "A confirmação de senha não confere."
+        else:
+            try:
+                user = create_user(username, password)
+            except ValueError as error:
+                error_message = str(error)
+            else:
+                flash(
+                    f"Usuário {user['username']} cadastrado com sucesso. Faça login para continuar.",
+                    "success",
+                )
+                return redirect(url_for("login"))
+
+    return render_template("register.html", error_message=error_message)
+
+
+@app.route("/logout", methods=["POST"])
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+
 @app.route("/search_artist")
+@login_required
 def search_artist_route():
     query = (request.args.get("query") or "").strip()
 
@@ -85,6 +185,7 @@ def search_artist_route():
 
 
 @app.route("/get_albums")
+@login_required
 def get_albums_route():
     artist_id = (request.args.get("artist_id") or "").strip()
 
@@ -102,6 +203,7 @@ def get_albums_route():
 
 
 @app.route("/compare", methods=["POST"])
+@login_required
 def compare():
     album1_id = (request.form.get("album1") or "").strip()
     album2_id = (request.form.get("album2") or "").strip()
