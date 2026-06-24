@@ -5,27 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Erro | Spotify Album Comparison</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
 </head>
-<body class="bg-light">
-    <nav class="navbar navbar-dark" style="background-color: #1DB954;">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="/">Spotify Album Comparison</a>
-            {% if session.get("authenticated") %}
-                <form action="{{ url_for('logout') }}" method="POST" class="ms-auto">
-                    <button type="submit" class="btn btn-outline-light btn-sm">Sair</button>
-                </form>
-            {% endif %}
-        </div>
-    </nav>
-
-    <main class="container py-5">
-        <div class="card border-0 shadow-sm mx-auto" style="max-width: 640px;">
-            <div class="card-body p-5 text-center">
-                <h1 class="h3 mb-3">Não foi possível concluir a operação</h1>
-                <p class="text-muted mb-4">{{ message }}</p>
-                <a href="{{ url_for('index') }}" class="btn btn-success">Voltar ao Início</a>
+<body>
+    <div class="app-shell">
+        <nav class="navbar topbar">
+            <div class="container-fluid px-4">
+                <a class="brand-mark" href="{{ url_for('index') }}">
+                    <span class="brand-dot">♪</span>
+                    <span>Album Compare</span>
+                </a>
+                {% if session.get("authenticated") %}
+                    <form action="{{ url_for('logout') }}" method="POST" class="ms-auto">
+                        <button type="submit" class="btn nav-action btn-sm">Sair</button>
+                    </form>
+                {% endif %}
             </div>
-        </div>
-    </main>
+        </nav>
+
+        <main class="auth-wrap">
+            <section class="panel error-panel text-center">
+                <p class="eyebrow mb-2">Erro</p>
+                <h1 class="section-title mb-3">Não foi possível concluir a operação</h1>
+                <p class="muted-copy mb-4">{{ message }}</p>
+                <a href="{{ url_for('index') }}" class="btn btn-spotify">Voltar ao início</a>
+            </section>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

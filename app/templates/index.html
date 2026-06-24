@@ -5,111 +5,140 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spotify Album Comparison</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .navbar {
-            background-color: #1DB954 !important; /* Verde Spotify */
-        }
-        .navbar-brand {
-            color: white !important;
-            font-weight: bold;
-        }
-        .form-container {
-            background-color: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-top: 2rem;
-        }
-        .list-group-item {
-            cursor: pointer;
-        }
-        .list-group-item:hover {
-            background-color: #f1f1f1;
-        }
-        .list-group-item img {
-            object-fit: cover;
-        }
-    </style>
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container">
-            <a class="navbar-brand" href="/">Spotify Album Comparison</a>
-            <form action="{{ url_for('logout') }}" method="POST" class="ms-auto">
-                <button type="submit" class="btn btn-outline-light btn-sm">Sair</button>
-            </form>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="form-container">
-                    <h2 class="text-center mb-4">Compare Albums</h2>
-                    <form id="artistForm">
-                        <div class="form-group mb-3">
-                            <label for="artistSearch" class="form-label">Search Artist</label>
-                            <input type="text" class="form-control" id="artistSearch" placeholder="Enter artist name">
-                            <ul id="artistResults" class="list-group mt-2"></ul>
-                        </div>
-                    </form>
-                    <form id="albumForm" action="/compare" method="POST">
-                        <div class="form-group mb-3">
-                            <label for="album1" class="form-label">Album 1</label>
-                            <select class="form-control" id="album1" name="album1" required></select>
-                        </div>
-                        <div class="form-group mb-3">
-                            <label for="album2" class="form-label">Album 2</label>
-                            <select class="form-control" id="album2" name="album2" required></select>
-                        </div>
-                        <button type="submit" class="btn btn-success w-100">Compare Albums</button>
-                    </form>
-                </div>
+    <div class="app-shell">
+        <nav class="navbar topbar sticky-top">
+            <div class="container-fluid px-4">
+                <a class="brand-mark" href="{{ url_for('index') }}">
+                    <span class="brand-dot">♪</span>
+                    <span>Album Compare</span>
+                </a>
+                <form action="{{ url_for('logout') }}" method="POST" class="ms-auto">
+                    <button type="submit" class="btn nav-action btn-sm">Sair</button>
+                </form>
             </div>
-        </div>
+        </nav>
+
+        <main class="page-wrap">
+            <section class="panel compare-panel">
+                <div class="row g-4 align-items-end mb-4">
+                    <div class="col-lg-8">
+                        <p class="eyebrow mb-2">Biblioteca Spotify</p>
+                        <h1 class="page-title">Compare álbuns</h1>
+                    </div>
+                    <div class="col-lg-4">
+                        <p class="muted-copy mb-0">Pesquise um artista, escolha dois lançamentos e veja o que cada versão tem em comum ou de exclusivo.</p>
+                    </div>
+                </div>
+
+                <form id="artistForm" class="mb-4">
+                    <label for="artistSearch" class="form-label">Artista</label>
+                    <input type="text" class="form-control" id="artistSearch" placeholder="Digite pelo menos 3 caracteres" autocomplete="off">
+                    <ul id="artistResults" class="list-group artist-results mt-2 d-none"></ul>
+                </form>
+
+                <form id="albumForm" action="/compare" method="POST">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="album1" class="form-label">Álbum 1</label>
+                            <select class="form-select" id="album1" name="album1" required>
+                                <option value="">Selecione um artista primeiro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="album2" class="form-label">Álbum 2</label>
+                            <select class="form-select" id="album2" name="album2" required>
+                                <option value="">Selecione um artista primeiro</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-spotify mt-4">Comparar álbuns</button>
+                </form>
+            </section>
+        </main>
     </div>
 
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script>
         $(document).ready(function() {
+            const artistResults = $('#artistResults');
+            const album1 = $('#album1');
+            const album2 = $('#album2');
+
+            function setAlbumPlaceholder(text) {
+                album1.empty().append($('<option>', { value: '', text: text }));
+                album2.empty().append($('<option>', { value: '', text: text }));
+            }
+
             $('#artistSearch').on('input', function() {
-                const query = $(this).val();
-                if (query.length > 2) {
-                    $.get('/search_artist', { query: query }, function(data) {
-                        const results = $('#artistResults');
-                        results.empty();
-                        data.artists.forEach(artist => {
-                            const imageUrl = artist.images.length > 0 ? artist.images[0].url : 'https://via.placeholder.com/50';
-                            results.append(`
-                                <li class="list-group-item d-flex align-items-center" data-id="${artist.id}">
-                                    <img src="${imageUrl}" alt="${artist.name}" class="rounded-circle me-3" style="width: 50px; height: 50px;">
-                                    <span>${artist.name}</span>
-                                </li>
-                            `);
-                        });
-                    });
+                const query = $(this).val().trim();
+                artistResults.empty().addClass('d-none');
+
+                if (query.length < 3) {
+                    setAlbumPlaceholder('Selecione um artista primeiro');
+                    return;
                 }
+
+                $.get('/search_artist', { query: query }, function(data) {
+                    artistResults.empty();
+
+                    if (!data.artists.length) {
+                        artistResults
+                            .append($('<li>', {
+                                class: 'list-group-item artist-result',
+                                text: 'Nenhum artista encontrado'
+                            }))
+                            .removeClass('d-none');
+                        return;
+                    }
+
+                    data.artists.forEach(artist => {
+                        const imageUrl = artist.images.length > 0 ? artist.images[0].url : 'https://placehold.co/96x96/181818/b3b3b3?text=%E2%99%AA';
+                        const item = $('<li>', {
+                            class: 'list-group-item artist-result d-flex align-items-center gap-3',
+                            tabindex: 0
+                        }).data('id', artist.id);
+
+                        $('<img>', { src: imageUrl, alt: artist.name }).appendTo(item);
+                        $('<span>', { text: artist.name, class: 'fw-semibold' }).appendTo(item);
+                        artistResults.append(item);
+                    });
+
+                    artistResults.removeClass('d-none');
+                });
             });
 
-            $('#artistResults').on('click', 'li', function() {
+            artistResults.on('click keydown', '.artist-result', function(event) {
+                if (event.type === 'keydown' && event.key !== 'Enter') {
+                    return;
+                }
+
                 const artistId = $(this).data('id');
-                $('#artistSearch').val($(this).text());
-                $('#artistResults').empty();
+                const artistName = $(this).find('span').text();
+                if (!artistId) {
+                    return;
+                }
+
+                $('#artistSearch').val(artistName);
+                artistResults.empty().addClass('d-none');
+                setAlbumPlaceholder('Carregando álbuns...');
+
                 $.get('/get_albums', { artist_id: artistId }, function(data) {
-                    const album1 = $('#album1');
-                    const album2 = $('#album2');
                     album1.empty();
                     album2.empty();
+
+                    if (!data.albums.length) {
+                        setAlbumPlaceholder('Nenhum álbum disponível');
+                        return;
+                    }
+
                     data.albums.forEach(album => {
-                        album1.append(`<option value="${album.id}">${album.name}</option>`);
-                        album2.append(`<option value="${album.id}">${album.name}</option>`);
+                        album1.append($('<option>', { value: album.id, text: album.name }));
+                        album2.append($('<option>', { value: album.id, text: album.name }));
                     });
                 });
             });
